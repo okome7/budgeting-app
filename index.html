@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>家計簿</title>
+    <!-- リセットCSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/destyle.css@1.0.15/destyle.css"
+    />
+    <!-- Font Awesome 読み込み -->
+    <script
+      src="https://kit.fontawesome.com/6eb45b057c.js"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Flatpickr 読み込み -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body>
+    <!-- 入力画面 -->
+    <div id="screen-input" class="screen">
+      <!-- トップ -->
+      <div class="top">
+        <button id="backBtn">戻る</button>
+        <button id="expenseBtn">支出</button>
+        <button id="incomeBtn">収入</button>
+      </div>
+
+      <!-- 日付 -->
+      <div class="form-row">
+        <label for="date">日付</label>
+        <input type="text" id="date" />
+      </div>
+      <!-- 金額 -->
+      <div class="form-row second-row">
+        <label for="amount">金額</label>
+        <input type="number" id="amount" autocomplete="off" />
+      </div>
+
+      <!-- 支出カテゴリー -->
+      <div id="expenseScreen" class="io-screen">
+        <div class="form-row">
+          <label for="expense-category">カテゴリー</label>
+          <select id="expense-category"></select>
+        </div>
+      </div>
+
+      <!-- 収入カテゴリー -->
+      <div id="incomeScreen" class="io-screen hidden">
+        <div class="form-row">
+          <label for="income-category">カテゴリー</label>
+          <select id="income-category"></select>
+        </div>
+      </div>
+
+      <!-- 追加・削除モーダル -->
+      <div id="categoryModal" class="modal">
+        <div class="modal-content">
+          <h3 id="modal-title">カテゴリー管理</h3>
+          <ul id="categoryList"></ul>
+          <!-- 追加用 -->
+          <div id="add-section">
+            <input
+              type="text"
+              id="modal-category-input"
+              placeholder="新しいカテゴリー"
+            />
+            <button id="modal-add-btn">追加</button>
+          </div>
+
+          <!-- 閉じるボタン -->
+          <div class="modal-buttons" style="margin-top: 15px">
+            <button id="modal-cancel-btn">閉じる</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- メモ -->
+      <div class="form-row-memo">
+        <label for="memo">メモ</label>
+        <input id="memo" autocomplete="off" />
+      </div>
+
+      <!-- 保存 -->
+      <button id="saveBtn">保存</button>
+    </div>
+
+    <!-- エラーモーダル -->
+    <div id="errorModal" class="error-modal">
+      <div class="error-modal-content">
+        <p id="error-message">エラーメッセージが入ります</p>
+        <button id="error-close-btn">OK</button>
+      </div>
+    </div>
+
+    <!-- オーバーレイ -->
+    <div id="overlay"></div>
+
+    <!-- 金額が未入力モーダル -->
+    <div id="amountModal" class="amount-modal" style="display: none">
+      <p><i class="fa-solid fa-xmark"></i>金額を入力してください</p>
+    </div>
+
+    <!-- 保存完了タブ -->
+    <div id="saveTab">
+      <i class="fa-regular fa-circle-check"></i>保存しました
+    </div>
+
+    <!-- カレンダー画面 -->
+    <div id="screen-list" class="screen">
+      <div id="topContainer">
+        <div id="calendarContainer">
+          <div id="calendar-header">
+            <button id="prevMonth">&lt;</button>
+            <span id="monthLabel"></span>
+            <button id="nextMonth">&gt;</button>
+          </div>
+          <div id="calendar"></div>
+        </div>
+
+        <!-- 合計金額表示 -->
+        <div id="summary">
+          <div class="summary-item">
+            <div class="summary-label">収入</div>
+            <div class="summary-amount" id="incomeTotal">0</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">支出</div>
+            <div class="summary-amount" id="expenseTotal">0</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">合計</div>
+            <div class="summary-amount" id="netTotal">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- リスト表示 -->
+      <div id="detailListContainer">
+        <div id="detailList"></div>
+      </div>
+    </div>
+
+    <!-- グラフ画面 -->
+    <div id="screen-graph" class="screen">
+      <div id="graphContainer">
+        <!-- 年月ナビ -->
+        <div id="graph-header">
+          <button id="prevMonthGraph">&lt;</button>
+          <span id="monthLabelGraph"></span>
+          <button id="nextMonthGraph">&gt;</button>
+        </div>
+
+        <!-- 支出/収入切替ボタン -->
+        <div id="graphTypeButtons">
+          <button id="showExpenseGraph" class="active" style="font-size: 15px">
+            支出
+          </button>
+          <button id="showIncomeGraph" style="font-size: 15px">収入</button>
+        </div>
+
+        <!-- グラフ表示 -->
+        <div id="expenseGraphContainer">
+          <canvas id="expenseChart"></canvas>
+          <div class="totalContainer">
+            <span class="label">合計</span>
+            <span class="amount" id="myExpenseTotal">0</span>
+          </div>
+          <div id="expenseList" class="category-list"></div>
+        </div>
+
+        <div id="incomeGraphContainer" style="display: none">
+          <canvas id="incomeChart"></canvas>
+          <div class="totalContainer">
+            <span class="label">合計</span>
+            <span class="amount" id="myIncomeTotal">0</span>
+          </div>
+          <div id="incomeList" class="category-list"></div>
+        </div>
+      </div>
+
+      <!-- カラーパレット -->
+      <div
+        id="customColorPicker"
+        class="custom-color-picker"
+        style="display: none"
+      >
+        <div class="color-option" style="background-color: #ff6384"></div>
+        <div class="color-option" style="background-color: #36a2eb"></div>
+        <div class="color-option" style="background-color: #ffcd56"></div>
+        <div class="color-option" style="background-color: #4bc0c0"></div>
+        <div class="color-option" style="background-color: #9966ff"></div>
+        <div class="color-option" style="background-color: #ff9f40"></div>
+        <div class="color-option" style="background-color: #c9cbcf"></div>
+        <div class="color-option" style="background-color: #8dd17e"></div>
+        <div class="color-option" style="background-color: #e0709b"></div>
+        <div class="color-option" style="background-color: #009688"></div>
+        <input type="color" id="customColorInput" />
+      </div>
+    </div>
+
+    <!-- 下部メニュー -->
+    <div id="menu" class="bottom-menu">
+      <button data-target="screen-input">
+        <i class="fa-solid fa-pen"></i>入力
+      </button>
+      <button data-target="screen-list">
+        <i class="fa-solid fa-calendar-days"></i>カレンダー
+      </button>
+      <button data-target="screen-graph">
+        <i class="fa-solid fa-chart-pie"></i>グラフ
+      </button>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+    <!-- Flatpickr 読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
